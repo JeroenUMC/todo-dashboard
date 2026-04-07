@@ -1,0 +1,72 @@
+Metadata-Version: 2.4
+Name: todo-dashboard
+Version: 0.1.0
+Summary: Local dashboard for workspace .notes todo files
+Requires-Python: >=3.10
+Description-Content-Type: text/markdown
+Requires-Dist: fastapi>=0.115.0
+Requires-Dist: uvicorn>=0.30.0
+Requires-Dist: jinja2>=3.1.0
+Requires-Dist: markdown>=3.6.0
+Provides-Extra: dev
+Requires-Dist: pytest>=8.0.0; extra == "dev"
+Requires-Dist: httpx>=0.27.0; extra == "dev"
+
+# Todo Dashboard
+
+Read-only local web app that aggregates every workspace `.notes/todo.md` into one filterable dashboard.
+
+## Features
+
+- Aggregates all `.notes/todo.md` files recursively from a workspace root.
+- Table columns: title, priority, type, status, assignee.
+- Filters: status, priority, type, assignee, project, search text.
+- Summary cards for OPEN / IN PROGRESS / CLOSED / TOTAL.
+- Tolerant parsing: malformed or missing fields are included as `UNKNOWN`.
+- Parse diagnostics panel so format issues are visible.
+- Read-only by design (no write-back to markdown files).
+
+## Setup
+
+```powershell
+cd tools/todo-dashboard
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+pip install -e .
+pip install -e ".[dev]"
+```
+
+## Run
+
+From `tools/todo-dashboard`:
+
+```powershell
+python -m todo_dashboard --workspace-root ../.. --open-browser
+```
+
+Or with installed script:
+
+```powershell
+todo-dashboard --workspace-root ../.. --open-browser
+```
+
+Default `--workspace-root` points to this repository's top-level workspace (`global_workspace`) when run from this project.
+
+## CLI options
+
+```powershell
+python -m todo_dashboard --help
+```
+
+Key flags:
+
+- `--workspace-root`: root folder to scan for `.notes/todo.md`.
+- `--host`: bind host (default `127.0.0.1`).
+- `--port`: bind port (default `8008`).
+- `--open-browser`: open dashboard in default browser.
+
+## Test
+
+```powershell
+pytest
+```

@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Todo Dashboard</title>
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+  <header class="hero">
+    <div>
+      <h1>Workspace Todo Dashboard</h1>
+      <p class="subtitle">Unified, read-only view of all .notes/todo.md entries.</p>
+    </div>
+    <div class="pill">Filtered items: {{ filtered_count }}</div>
+  </header>
+
+  <section class="summary-grid">
+    <article class="summary-card open"><h2>OPEN</h2><p>{{ counts['OPEN'] }}</p></article>
+    <article class="summary-card progress"><h2>IN PROGRESS</h2><p>{{ counts['IN PROGRESS'] }}</p></article>
+    <article class="summary-card closed"><h2>CLOSED</h2><p>{{ counts['CLOSED'] }}</p></article>
+    <article class="summary-card total"><h2>TOTAL</h2><p>{{ counts['TOTAL'] }}</p></article>
+  </section>
+
+  <section class="panel">
+    <form method="get" id="filters-form" class="filters-grid">
+      <label>Status
+        <select name="status" data-autosubmit>
+          <option value="">All</option>
+          {% for value in facets['statuses'] %}
+            <option value="{{ value }}" {% if filters['status'] == value %}selected{% endif %}>{{ value }}</option>
+          {% endfor %}
+        </select>
+      </label>
+
+      <label>Priority
+        <select name="priority" data-autosubmit>
+          <option value="">All</option>
+          {% for value in facets['priorities'] %}
+            <option value="{{ value }}" {% if filters['priority'] == value %}selected{% endif %}>{{ value }}</option>
+          {% endfor %}
+        </select>
+      </label>
+
+      <label>Type
+        <select name="type" data-autosubmit>
+          <option value="">All</option>
+          {% for value in facets['types'] %}
+            <option value="{{ value }}" {% if filters['type'] == value %}selected{% endif %}>{{ value }}</option>
+          {% endfor %}
+        </select>
+      </label>
+
+      <label>Assignee
+        <select name="assignee" data-autosubmit>
+          <option value="">All</option>
+          {% for value in facets['assignees'] %}
+            <option value="{{ value }}" {% if filters['assignee'] == value %}selected{% endif %}>{{ value }}</option>
+          {% endfor %}
+        </select>
+      </label>
+
+      <label>Project
+        <select name="project" data-autosubmit>
+          <option value="">All</option>
+          {% for value in facets['projects'] %}
+            <option value="{{ value }}" {% if filters['project'] == value %}selected{% endif %}>{{ value }}</option>
+          {% endfor %}
+        </select>
+      </label>
+
+      <label>Search title
+        <input type="text" name="q" value="{{ filters['q'] }}" placeholder="e.g. semantic-interop">
+      </label>
+
+      <label>Sort by
+        <select name="sort" data-autosubmit>
+          <option value="priority" {% if filters['sort'] == 'priority' %}selected{% endif %}>Priority</option>
+          <option value="status" {% if filters['sort'] == 'status' %}selected{% endif %}>Status</option>
+          <option value="title" {% if filters['sort'] == 'title' %}selected{% endif %}>Title</option>
+          <option value="type" {% if filters['sort'] == 'type' %}selected{% endif %}>Type</option>
+          <option value="assignee" {% if filters['sort'] == 'assignee' %}selected{% endif %}>Assignee</option>
+          <option value="project" {% if filters['sort'] == 'project' %}selected{% endif %}>Project</option>
+        </select>
+      </label>
+
+      <label>Order
+        <select name="order" data-autosubmit>
+          <option value="asc" {% if filters['order'] == 'asc' %}selected{% endif %}>Ascending</option>
+          <option value="desc" {% if filters['order'] == 'desc' %}selected{% endif %}>Descending</option>
+        </select>
+      </label>
+
+      <div class="actions">
+        <button type="submit">Apply</button>
+        <a class="secondary" href="/">Reset</a>
+      </div>
+    </form>
+  </section>
+
+  <section class="panel">
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Title</th>
+            <th>Priority</th>
+            <th>Type</th>
+            <th>Status</th>
+            <th>Assignee</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in items %}
+            <tr class="todo-row" tabindex="0" aria-label="Preview {{ item.title }}">
+              <td>
+                <strong>{{ item.title }}</strong>
+                <div class="meta">{{ item.project }} | {{ item.source_path }}:{{ item.source_line }}</div>
+                <template class="item-preview-template">{{ item.body_markdown | markdown_preview | safe }}</template>
+              </td>
+              <td><span class="badge priority priority-{{ item.priority|lower|replace(' ', '-') }}">{{ item.priority }}</span></td>
+              <td>{{ item.item_type }}</td>
+              <td><span class="badge status status-{{ item.status|lower|replace(' ', '-') }}">{{ item.status }}</span></td>
+              <td>{{ item.assignee }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <div id="preview-backdrop" class="preview-backdrop hidden" aria-hidden="true"></div>
+
+  <section
+    id="preview-panel"
+    class="panel preview-panel hidden"
+    aria-live="polite"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="preview-title"
+  >
+    <div class="preview-header">
+      <h2 id="preview-title">Preview</h2>
+      <button type="button" id="preview-close" class="secondary">Close</button>
+    </div>
+    <div id="preview-meta" class="meta"></div>
+    <article id="preview-content" class="preview-content">
+      <p>Select a todo item to preview its markdown details.</p>
+    </article>
+  </section>
+
+  <section class="panel diagnostics">
+    <h2>Parse diagnostics ({{ warnings | length }})</h2>
+    {% if warnings %}
+      <ul>
+        {% for warning in warnings %}
+          <li>
+            <strong>{{ warning.message }}</strong>
+            <span>{{ warning.source_path }}:{{ warning.source_line }}</span>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p>No parsing issues detected.</p>
+    {% endif %}
+  </section>
+
+  <script src="/static/dashboard.js"></script>
+</body>
+</html>

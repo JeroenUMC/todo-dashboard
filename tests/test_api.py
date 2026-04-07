@@ -1,0 +1,32 @@
+from fastapi.testclient import TestClient
+
+
+def test_health_endpoint(app):
+    client = TestClient(app)
+    response = client.get("/health")
+    assert response.status_code == 200
+    assert response.json()["status"] == "ok"
+
+
+def test_api_todos_filters(app):
+    client = TestClient(app)
+    response = client.get("/api/todos", params={"status": "OPEN"})
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["total"] == 1
+    assert payload["items"][0]["status"] == "OPEN"
+
+
+def test_dashboard_renders(app):
+    client = TestClient(app)
+    response = client.get("/")
+    assert response.status_code == 200
+    assert "Workspace Todo Dashboard" in response.text
+    assert "<th>Title</th>" in response.text
+    assert "id=\"preview-panel\"" in response.text
+
+
+def test_invalid_sort_rejected(app):
+    client = TestClient(app)
+    response = client.get("/api/todos", params={"sort": "bad"})
+    assert response.status_code == 400

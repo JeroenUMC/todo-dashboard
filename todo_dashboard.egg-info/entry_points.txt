@@ -1,0 +1,2 @@
+[console_scripts]
+todo-dashboard = todo_dashboard.cli:main
