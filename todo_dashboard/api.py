@@ -10,7 +10,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 from todo_dashboard.config import default_workspace_root
-from todo_dashboard.service import facets, filter_items, load_dashboard_data, sort_items, status_counts
+from todo_dashboard.service import facets, filter_items, load_dashboard_data, sort_items, status_counts, status_statistics
 
 VALID_SORT_FIELDS = {"title", "priority", "status", "type", "assignee", "project"}
 VALID_ORDERS = {"asc", "desc"}
@@ -89,6 +89,7 @@ def create_app(workspace_root: Path | None = None) -> FastAPI:
                     "type": item.item_type,
                     "status": item.status,
                     "assignee": item.assignee,
+                    "closed_at": item.closed_at.isoformat() if item.closed_at else None,
                     "project": item.project,
                     "source_path": item.source_path,
                     "source_line": item.source_line,
@@ -133,6 +134,7 @@ def create_app(workspace_root: Path | None = None) -> FastAPI:
         order: str = "asc",
     ) -> HTMLResponse:
         data, sorted_items = _load_and_query(status, priority, item_type, assignee, project, q, sort, order)
+        stats = status_statistics(resolved_workspace, data.items)
         return templates.TemplateResponse(
             request=request,
             name="dashboard.html",
@@ -141,6 +143,7 @@ def create_app(workspace_root: Path | None = None) -> FastAPI:
                 "counts": status_counts(data.items),
                 "filtered_count": len(sorted_items),
                 "facets": facets(data.items),
+                "status_stats": stats,
                 "warnings": data.warnings,
                 "filters": {
                     "status": status or "",

@@ -1,11 +1,7 @@
 from __future__ import annotations
 
+from datetime import date
 from dataclasses import dataclass
-
-
-VALID_PRIORITIES = {"LOW", "MEDIUM", "HIGH"}
-VALID_TYPES = {"BUG", "FEATURE", "REFACTOR", "RESEARCH", "MISC"}
-VALID_STATUSES = {"OPEN", "IN PROGRESS", "CLOSED"}
 
 
 @dataclass(frozen=True)
@@ -15,6 +11,7 @@ class TodoItem:
     item_type: str
     status: str
     assignee: str
+    closed_at: date | None
     project: str
     source_path: str
     source_line: int

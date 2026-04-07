@@ -26,6 +26,35 @@ Read-only local web app that aggregates every workspace `.notes/todo.md` into on
 - Parse diagnostics panel so format issues are visible.
 - Read-only by design (no write-back to markdown files).
 
+## Project Structure Assumptions
+
+The dashboard assumes a layered workspace where each project/repository may have its own `.notes/` folder.
+It scans recursively from `--workspace-root` and includes every `.notes/todo.md` it finds.
+
+Illustrative example (not a required exact layout):
+
+```text
+global_workspace
+├── project_1/
+│   ├── repository_1/
+│   │   └── .notes/
+│   │       └── todo.md
+│   └── repository_2/
+│       └── .notes/
+│           └── todo.md
+├── project_2/
+│   └── .notes/
+│       └── todo.md
+└── .notes/
+	└── todo.md
+```
+
+Parsing assumptions for each todo entry:
+
+- Todo items are markdown headers starting with `###`.
+- Metadata is expected in bracket format `[PRIORITY: ...] [TYPE: ...] [STATUS: ...] [ASSIGNEE: ...]`.
+- Missing or malformed metadata is kept visible and normalized to `UNKNOWN`. See the Parse diagnostics panel for details on any issues.
+
 ## Setup
 
 ```powershell
@@ -38,7 +67,7 @@ pip install -e ".[dev]"
 
 ## Run
 
-From `tools/todo-dashboard`:
+From your global_workspace, run the dashboard with:
 
 ```powershell
 python -m todo_dashboard --workspace-root ../.. --open-browser

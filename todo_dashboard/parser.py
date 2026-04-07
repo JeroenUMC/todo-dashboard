@@ -1,11 +1,12 @@
 from __future__ import annotations
 
 import re
+from datetime import date
 from pathlib import Path
 
 from todo_dashboard.models import ParseWarning, TodoItem
 
-BRACKET_PATTERN = re.compile(r"\[(?P<key>[A-Za-z ]+):\s*(?P<value>[^\]]+)\]")
+BRACKET_PATTERN = re.compile(r"\[(?P<key>[A-Za-z_ ]+):\s*(?P<value>[^\]]+)\]")
 
 
 def discover_todo_files(workspace_root: Path) -> list[Path]:
@@ -47,6 +48,8 @@ def parse_todo_file(todo_file: Path, workspace_root: Path) -> tuple[list[TodoIte
         item_type = normalize_type(metadata.get("TYPE"))
         status = normalize_status(metadata.get("STATUS"))
         assignee = normalize_assignee(metadata.get("ASSIGNEE") or metadata.get("ASSIGNEE_ALT"))
+        closed_at_raw = metadata.get("CLOSED_AT")
+        closed_at = normalize_closed_at(closed_at_raw)
 
         if "ASSIGNEE" not in metadata and "ASSIGNEE_ALT" in metadata:
             warnings.append(
@@ -54,6 +57,16 @@ def parse_todo_file(todo_file: Path, workspace_root: Path) -> tuple[list[TodoIte
                     source_path=relative_path,
                     source_line=line_no,
                     message="Assignee key uses non-canonical casing",
+                    raw_line=stripped,
+                )
+            )
+
+        if closed_at_raw and closed_at is None:
+            warnings.append(
+                ParseWarning(
+                    source_path=relative_path,
+                    source_line=line_no,
+                    message="Invalid CLOSED_AT date",
                     raw_line=stripped,
                 )
             )
@@ -85,6 +98,7 @@ def parse_todo_file(todo_file: Path, workspace_root: Path) -> tuple[list[TodoIte
                 item_type=item_type,
                 status=status,
                 assignee=assignee,
+                closed_at=closed_at,
                 project=project,
                 source_path=relative_path,
                 source_line=line_no,
@@ -129,22 +143,23 @@ def normalize_priority(value: str | None) -> str:
     if not value:
         return "UNKNOWN"
     normalized = value.strip().upper()
-    return normalized if normalized in {"LOW", "MEDIUM", "HIGH"} else "UNKNOWN"
+    return normalized if normalized else "UNKNOWN"
 
 
 def normalize_type(value: str | None) -> str:
     if not value:
         return "UNKNOWN"
     normalized = value.strip().upper()
-    return normalized if normalized in {"BUG", "FEATURE", "REFACTOR", "RESEARCH", "MISC"} else "UNKNOWN"
+    return normalized if normalized else "UNKNOWN"
 
 
 def normalize_status(value: str | None) -> str:
     if not value:
         return "UNKNOWN"
     normalized = re.sub(r"\s+", " ", value.strip().upper())
+    # Keep underscore-to-space conversion for backward compatibility
     normalized = normalized.replace("IN_PROGRESS", "IN PROGRESS")
-    return normalized if normalized in {"OPEN", "IN PROGRESS", "CLOSED"} else "UNKNOWN"
+    return normalized if normalized else "UNKNOWN"
 
 
 def normalize_assignee(value: str | None) -> str:
@@ -152,3 +167,12 @@ def normalize_assignee(value: str | None) -> str:
         return "UNKNOWN"
     normalized = re.sub(r"\s+", " ", value.strip()).upper()
     return normalized if normalized else "UNKNOWN"
+
+
+def normalize_closed_at(value: str | None) -> date | None:
+    if not value:
+        return None
+    try:
+        return date.fromisoformat(value.strip())
+    except ValueError:
+        return None

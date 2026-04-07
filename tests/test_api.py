@@ -24,6 +24,8 @@ def test_dashboard_renders(app):
     assert "Workspace Todo Dashboard" in response.text
     assert "<th>Title</th>" in response.text
     assert "id=\"preview-panel\"" in response.text
+    assert "data-stat-key=\"closed\"" in response.text
+    assert "id=\"status-stats-data\"" in response.text
 
 
 def test_invalid_sort_rejected(app):

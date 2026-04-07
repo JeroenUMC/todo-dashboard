@@ -16,9 +16,15 @@
   </header>
 
   <section class="summary-grid">
-    <article class="summary-card open"><h2>OPEN</h2><p>{{ counts['OPEN'] }}</p></article>
-    <article class="summary-card progress"><h2>IN PROGRESS</h2><p>{{ counts['IN PROGRESS'] }}</p></article>
-    <article class="summary-card closed"><h2>CLOSED</h2><p>{{ counts['CLOSED'] }}</p></article>
+    <button type="button" class="summary-card open" data-stat-key="open" aria-label="Show open statistics">
+      <h2>OPEN</h2><p>{{ counts['OPEN'] }}</p>
+    </button>
+    <button type="button" class="summary-card progress" data-stat-key="in_progress" aria-label="Show in progress statistics">
+      <h2>IN PROGRESS</h2><p>{{ counts['IN PROGRESS'] }}</p>
+    </button>
+    <button type="button" class="summary-card closed" data-stat-key="closed" aria-label="Show closed statistics">
+      <h2>CLOSED</h2><p>{{ counts['CLOSED'] }}</p>
+    </button>
     <article class="summary-card total"><h2>TOTAL</h2><p>{{ counts['TOTAL'] }}</p></article>
   </section>
 
@@ -148,6 +154,8 @@
       <p>Select a todo item to preview its markdown details.</p>
     </article>
   </section>
+
+  <script id="status-stats-data" type="application/json">{{ status_stats | tojson }}</script>
 
   <section class="panel diagnostics">
     <h2>Parse diagnostics ({{ warnings | length }})</h2>

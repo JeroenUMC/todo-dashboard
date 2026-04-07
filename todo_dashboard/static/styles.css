@@ -60,6 +60,21 @@ h1 {
   border: 1px solid var(--line);
   border-radius: 12px;
   padding: 0.8rem;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  appearance: none;
+  color: var(--ink);
+  font: inherit;
+  transition: transform 0.12s ease, box-shadow 0.12s ease, border-color 0.12s ease;
+}
+
+.summary-card:hover,
+.summary-card:focus-visible {
+  transform: translateY(-1px);
+  border-color: #b7c5cb;
+  box-shadow: 0 10px 24px rgba(13, 28, 36, 0.08);
+  outline: none;
 }
 
 .summary-card h2 {
@@ -256,6 +271,49 @@ th {
 .preview-content p,
 .preview-content li {
   line-height: 1.5;
+}
+
+.status-stats {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 0.6rem;
+}
+
+.stat-metric,
+.stat-highlight {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #f8fafb;
+  padding: 0.7rem;
+}
+
+.stat-metric span,
+.stat-highlight-label,
+.stat-note {
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.stat-metric strong,
+.stat-highlight-value {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: 1.05rem;
+}
+
+.stat-highlight-meta {
+  margin-top: 0.25rem;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.stat-note {
+  margin: 0;
 }
 
 .preview-content h1,
