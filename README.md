@@ -53,7 +53,7 @@ pip install -e ".[dev]"
 
 ## Run
 
-From `tools/todo-dashboard`:
+From your global_workspace, run the dashboard with:
 
 ```powershell
 python -m todo_dashboard --workspace-root ../.. --open-browser
