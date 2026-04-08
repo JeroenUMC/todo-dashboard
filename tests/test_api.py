@@ -1,5 +1,7 @@
 from fastapi.testclient import TestClient
 
+from todo_dashboard import api
+
 
 def test_health_endpoint(app):
     client = TestClient(app)
@@ -32,3 +34,11 @@ def test_invalid_sort_rejected(app):
     client = TestClient(app)
     response = client.get("/api/todos", params={"sort": "bad"})
     assert response.status_code == 400
+
+
+def test_markdown_preview_falls_back_without_dependency(monkeypatch):
+    monkeypatch.setattr(api, "markdown", None)
+
+    rendered = api.markdown_preview("Hello\n<script>alert('x')</script>")
+
+    assert rendered == "<p>Hello<br />\n&lt;script&gt;alert(&#x27;x&#x27;)&lt;/script&gt;</p>"

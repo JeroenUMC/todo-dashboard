@@ -3,11 +3,15 @@ from __future__ import annotations
 import html
 from pathlib import Path
 
-import markdown
 from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+
+try:
+    import markdown
+except ModuleNotFoundError:
+    markdown = None
 
 from todo_dashboard.config import default_workspace_root
 from todo_dashboard.service import facets, filter_items, load_dashboard_data, sort_items, status_counts, status_statistics
@@ -21,6 +25,8 @@ def markdown_preview(text: str) -> str:
         text = "_No additional details provided._"
     # Escape raw HTML from source markdown while preserving markdown formatting.
     escaped = html.escape(text)
+    if markdown is None:
+        return f"<p>{escaped.replace(chr(10), '<br />\n')}</p>"
     return markdown.markdown(escaped, extensions=["extra", "sane_lists", "nl2br"], output_format="html5")
 
 
